@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     var correctAnswer: Int = 0
     var totalQuestions: Int = 0
     var correctAnswers: Int = 0
+    var wrongAnswers: Int = 0
     var answeredQuestions: Int = 0
     val REQUEST_CODE = 100
 
@@ -37,42 +38,6 @@ class MainActivity : AppCompatActivity() {
 
         val operation = intent.getStringExtra("OPERATION")
 
-        // Anropa setNewQuestions för att börja med att skapa 10 frågor
-        setNewQuestions(10) {
-            if (operation == "PLUS") {
-                setNewQuestionPlus()
-            } else if (operation == "MINUS") {
-                setNewQuestionMinus()
-            } else if (operation == "MULTIPLIK") {
-                setNewQuestionMultiplik()
-            } else if (operation == "DIVISION") {
-                setNewQuestionDivision()
-            }
-        }
-
-        val backButton = findViewById<Button>(R.id.backButton2)
-
-        backButton.setOnClickListener {
-            finish()
-        }
-
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                answeredQuestions = data?.getIntExtra("answeredQuestions", 0) ?: 0
-                // Uppdatera värdet på answeredQuestions
-            }
-        }
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-        val operation = intent.getStringExtra("OPERATION")
 
         if (operation == "PLUS") {
             setNewQuestionPlus()
@@ -84,39 +49,57 @@ class MainActivity : AppCompatActivity() {
             setNewQuestionDivision()
         }
 
+
+    val backButton = findViewById<Button>(R.id.backButton2)
+
+    backButton.setOnClickListener {
+        finish()
+    }
+}
+    override fun onResume() {
+        super.onResume()
+        val operation = intent.getStringExtra("OPERATION")
+
+        totalQuestions++
+        if (operation == "PLUS") {
+            setNewQuestionPlus()
+        } else if (operation == "MINUS") {
+            setNewQuestionMinus()
+        } else if (operation == "MULTIPLIK") {
+            setNewQuestionMultiplik()
+        } else if (operation == "DIVISION") {
+            setNewQuestionDivision()
+        }
+
+
+        Log.d("!!!", "Du har svarat på $answeredQuestions frågor rätt svar: $correctAnswers och fel svar $wrongAnswers")
+
         answerView.text.clear()
     }
 
-    fun setNewQuestions(total: Int, questionGenerator: () -> Unit) {
-        totalQuestions = total
-        correctAnswers = 0
-        generateQuestion(questionGenerator)
-    }
 
-    fun generateQuestion(questionGenerator: () -> Unit) {
-        if (totalQuestions > 0) {
-            questionGenerator.invoke()
-            totalQuestions--
-            Log.d("!!!", "Genererade fråga, antal frågor kvar: $totalQuestions")
+    fun handleAnswer() {
+        val answeredCorrect = checkAnswer()
+
+        if (answeredCorrect) {
+            correctAnswers++
         } else {
-            showResult()
-            Log.d("!!!", "Visar resultat")
+            wrongAnswers++
         }
-    }
 
-    fun showResult() {
-        if (answeredQuestions >= 10) {
+        answeredQuestions++
+
+        if (answeredQuestions < 10) {
+            val intent = Intent(this, AnswerActivity::class.java)
+            intent.putExtra("answeredCorrect", answeredCorrect)
+            startActivityForResult(intent, REQUEST_CODE)
+        } else {
             val resultIntent = Intent(this, ResultActivity::class.java)
-            resultIntent.putExtra("CORRECT_ANSWERS", correctAnswers)
             startActivity(resultIntent)
-            finish()
-        } else {
-            // Annars visa antalet rätt svar
-            val accuracy = (correctAnswers.toDouble() / 10) * 100
-            val resultMessage = "Du fick $correctAnswers av 10 rätt. $accuracy% korrekt."
-            // Visa resultatet på valfritt sätt, t.ex. genom att använda en Toast eller en AlertDialog
-            // Exempel: Toast.makeText(this, resultMessage, Toast.LENGTH_LONG).show()
         }
+
+        Log.d("!!!", "Du har svarat på $answeredQuestions frågor. Rätt svar: $correctAnswers, fel svar: $wrongAnswers")
+        answerView.text.clear()
     }
 
     fun checkAnswer(): Boolean {
@@ -128,21 +111,6 @@ class MainActivity : AppCompatActivity() {
         return answer == correctAnswer
     }
 
-    fun handleAnswer() {
-        val answeredCorrect = checkAnswer()
-        answeredQuestions++
-
-        if (answeredQuestions <= 10) {
-            if (answeredQuestions == 10) {
-                showResult()
-            } else {
-                val intent = Intent(this, AnswerActivity::class.java)
-                intent.putExtra("answeredCorrect", answeredCorrect)
-                intent.putExtra("answeredQuestions", answeredQuestions)
-                startActivityForResult(intent, REQUEST_CODE)
-            }
-        }
-    }
     fun setNewQuestionPlus() {
         val firstNumber = (1..10).random()
         val secondNumber = (1..10).random()

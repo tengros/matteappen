@@ -4,14 +4,15 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.example.simplemathapp.Constants.REQUEST_CODE
 
 class AnswerActivity : AppCompatActivity() {
 
-    lateinit var resultView : TextView
-    var answeredQuestions: Int = 0
+    lateinit var resultView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,13 +21,24 @@ class AnswerActivity : AppCompatActivity() {
         resultView = findViewById(R.id.resultView)
         val nextQuestionsButton = findViewById<Button>(R.id.nextQuestionButton)
 
-        nextQuestionsButton.setOnClickListener {
-            goToNextQuestionOrEnd()
+        val answer = intent.getBooleanExtra("answeredCorrect", false)
+        val answeredQuestions = intent.getIntExtra("answeredQuestions", 0) + 1
+
+        Log.d("...", "Du har svarat på $answeredQuestions frågor")
+
+        if (answeredQuestions >= 10) {
+            // Om antalet besvarade frågor är 10 eller fler, visa inte knappen för nästa fråga
+            nextQuestionsButton.visibility = View.GONE
+        } else {
+            // Om antalet besvarade frågor är mindre än 10, visa knappen för nästa fråga och hantera klick
+            nextQuestionsButton.setOnClickListener {
+                // Skicka användaren till MainActivity för en ny fråga
+
+                finish()
+            }
         }
 
-        val answer = intent.getBooleanExtra("answeredCorrect", false)
-        answeredQuestions = intent.getIntExtra("answeredQuestions", 0)
-
+        // Visa "Rätt svar!" eller "Fel svar!" baserat på användarens svar
         if (answer) {
             resultView.text = "Rätt svar!"
         } else {
@@ -34,26 +46,9 @@ class AnswerActivity : AppCompatActivity() {
         }
     }
 
-    private fun goToNextQuestionOrEnd() {
-        if (shouldStartNewGame()) {
-            val intent = Intent()
-            intent.putExtra("answeredQuestions", answeredQuestions)
-            setResult(Activity.RESULT_OK, intent) // Sätt resultatet och skicka tillbaka till MainActivity
-            finish()
-        } else {
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("OPERATION", getOperationFromUser())
+    override fun onResume() {
+        super.onResume()
 
-            startActivityForResult(intent, REQUEST_CODE) // Använd REQUEST_CODE för att starta aktiviteten
-            finish()
-        }
-    }
 
-    private fun shouldStartNewGame(): Boolean {
-        return answeredQuestions >= 10
-    }
-
-    private fun getOperationFromUser(): String {
-        return "PLUS"
     }
 }
