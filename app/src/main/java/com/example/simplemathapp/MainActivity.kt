@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         if (answeredQuestions < 10) {
             val intent = Intent(this, AnswerActivity::class.java)
             intent.putExtra("answeredCorrect", answeredCorrect)
-            startActivityForResult(intent, REQUEST_CODE)
+
         } else {
             val resultIntent = Intent(this, ResultActivity::class.java)
             startActivity(resultIntent)

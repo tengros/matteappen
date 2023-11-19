@@ -12,19 +12,20 @@ class ResultActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_result)
 
-        // Visa antal rätt svar när 10 frågor har besvarats
+        // Ta emot värden från MainActivity
         val correctAnswers = intent.getIntExtra("CORRECT_ANSWERS", 0)
-        val accuracy = (correctAnswers.toDouble() / 10) * 100 // Räkna ut procentuellt rätt
-        val resultMessage = "Du fick $correctAnswers av 10 rätt. $accuracy% korrekt."
+        val wrongAnswers = intent.getIntExtra("WRONG_ANSWERS", 0)
 
-        val resultView = findViewById<TextView>(R.id.resultView)
+        // Visa antal rätt och fel svar
+        val accuracy = (correctAnswers.toDouble() / (correctAnswers + wrongAnswers)) * 100
+        val resultMessage = "Du fick $correctAnswers av ${correctAnswers + wrongAnswers} rätt. $accuracy% korrekt."
+
+        val resultView = findViewById<TextView>(R.id.finalResult)
         resultView.text = resultMessage
 
         val restartButton = findViewById<Button>(R.id.restartButton)
         restartButton.setOnClickListener {
-            val intent = Intent(this, FirstActivity::class.java)
-            startActivity(intent)
-            finish()
+            finish() // Stäng ResultActivity istället för att starta om spelet
         }
     }
 }
